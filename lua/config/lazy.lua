@@ -38,13 +38,19 @@ require("lazy").setup({
 	{ "joshdick/onedark.vim" }, 
 	{ 'hrsh7th/cmp-nvim-lsp' }, { 'hrsh7th/cmp-buffer' }, { 'hrsh7th/cmp-path' },
     { 'hrsh7th/cmp-cmdline' }, { 'hrsh7th/nvim-cmp' },
-	{ "williamboman/mason.nvim" },
-	{
-        'nvim-telescope/telescope.nvim',
+	{ "williamboman/mason.nvim" }, {'nvim-telescope/telescope.nvim',
         -- tag = '0.1.1',
         dependencies = {'nvim-lua/plenary.nvim'}
-    },{ "nvimtools/none-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" } },
-  },
+    }, { "nvimtools/none-ls.nvim", dependencies = { "nvim-lua/plenary.nvim" } }, 
+    {'windwp/nvim-autopairs'}, {'windwp/nvim-ts-autotag'}, 
+    {"akinsho/bufferline.nvim", dependencies = {'nvim-tree/nvim-web-devicons'}}, 
+    {'terrortylor/nvim-comment'},{'lewis6991/gitsigns.nvim'},
+    {
+        'nvim-lualine/lualine.nvim', dependencies = {
+                 'nvim-tree/nvim-web-devicons', 'linrongbin16/lsp-progress.nvim'
+        }, {'akinsho/toggleterm.nvim', version = "*", config = true},	
+    },
+}, 
   -- Configure any other settings here. See the documentation for more details.
   -- colorscheme that will be used when installing plugins.
   install = { colorscheme = { "habamax" } },
