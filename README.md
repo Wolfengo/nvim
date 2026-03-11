@@ -15,6 +15,28 @@
 
 ## Что нужно установить
 
+### Базовые системные зависимости
+
+Это не привязано к одному конкретному языку, но нужно для нормальной работы всего конфига.
+
+| Что нужно | Зачем |
+| --- | --- |
+| `git` | установка и обновление плагинов, git-функции |
+| `curl` | часть bootstrap / installer-сценариев |
+| `tar` | распаковка зависимостей |
+| `ripgrep` | поиск по проекту через Telescope |
+| `xclip` | буфер обмена в X11 |
+| `wl-clipboard` | буфер обмена в Wayland |
+| `nodejs` + `npm` | установка JS/TS/CSS/Prisma/Python LSP-инструментов из npm |
+| `python3` | Python-инструменты и виртуальные окружения |
+| `Nerd Font` | нормальное отображение иконок в интерфейсе |
+
+Быстрая установка базового набора на Debian / Ubuntu:
+
+```bash
+sudo apt install git curl tar ripgrep xclip wl-clipboard nodejs npm python3
+```
+
 Сам Neovim-конфиг не делает диагностику и форматирование в одиночку. Для разных языков ему нужны внешние программы.
 
 Ниже таблица: что за что отвечает и что нужно поставить.
@@ -31,6 +53,38 @@
 | Lua | форматирование | `stylua` | установить `stylua` и добавить в `PATH` |
 | Go | ошибки | `golangci-lint-langserver` и `golangci-lint` | `go install github.com/nametake/golangci-lint-langserver@latest` и `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest` |
 | Rust | ошибки, переходы, hover | `rust-analyzer` | установить `rust-analyzer` и добавить в `PATH` |
+| Поиск по проекту | `Telescope live_grep` | `ripgrep` | `sudo apt install ripgrep` |
+
+## Установщик
+
+В репозитории есть перезапускаемый установщик:
+
+```bash
+./install.sh
+```
+
+Он сделан так, чтобы его можно было запускать много раз:
+
+- если пакет уже установлен, он будет пропущен
+- если в конфиг позже добавится новая зависимость, её можно будет дозагрузить повторным запуском
+
+Доступные режимы:
+
+```bash
+./install.sh --base
+./install.sh --python
+./install.sh --web
+./install.sh --all
+```
+
+Что ставят режимы:
+
+| Команда | Что ставится |
+| --- | --- |
+| `./install.sh --base` | базовые системные зависимости |
+| `./install.sh --python` | `mypy`, `black` |
+| `./install.sh --web` | npm-инструменты для `pyright`, `ts/js`, `css`, `prisma`, `prettierd` |
+| `./install.sh --all` | всё сразу |
 
 ## Как устроен Python `.venv`
 
@@ -152,7 +206,7 @@ sudo apt install wl-clipboard
 | Клавиши | Что делают |
 | --- | --- |
 | `Space ff` | найти файл |
-| `Space fw` | поиск по тексту в проекте |
+| `Space fw` | поиск по тексту во всём проекте |
 | `Space fb` | список открытых буферов |
 | `Space fh` | поиск по help |
 | `Space gb` | git branches |
