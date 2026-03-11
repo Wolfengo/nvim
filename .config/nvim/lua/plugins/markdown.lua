@@ -23,11 +23,9 @@ end
 vim.api.nvim_create_autocmd("FileType", {
     pattern = "markdown",
     group = vim.api.nvim_create_augroup("UserMarkdownReading", { clear = true }),
-    callback = function(args)
-        vim.bo[args.buf].spell = true
+    callback = function()
         vim.wo.wrap = true
         vim.wo.linebreak = true
-        vim.opt_local.conceallevel = 2
-        vim.opt_local.textwidth = 0
+        vim.wo.conceallevel = 0
     end,
 })
