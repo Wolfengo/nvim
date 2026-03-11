@@ -70,6 +70,14 @@ require("lazy").setup({
       "akinsho/toggleterm.nvim",
       version = "*",
     },
+    {
+      "MeanderingProgrammer/render-markdown.nvim",
+      dependencies = {
+        "nvim-treesitter/nvim-treesitter",
+        "nvim-tree/nvim-web-devicons",
+      },
+      ft = { "markdown" },
+    },
   },
   install = { colorscheme = { "habamax" } },
   checker = { enabled = true },
