@@ -1,15 +1,35 @@
--- ~/.config/nvim/lua/plugins/nullls.lua
 local null_ls = require("null-ls")
+local helpers = require("null-ls.helpers")
 local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+
+local function find_upward(startpath, targets)
+    if not startpath or startpath == "" then
+        return nil
+    end
+
+    local dir = vim.fs.dirname(startpath)
+    return vim.fs.find(targets, {
+        path = dir,
+        upward = true,
+        stop = vim.loop.os_homedir(),
+    })[1]
+end
+
+local function project_executable(params, command)
+    return find_upward(params.bufname, {
+        ".venv/bin/" .. command,
+        "venv/bin/" .. command,
+    }) or command
+end
 
 null_ls.setup({
     sources = {
-        -- Python
         null_ls.builtins.formatting.black,
-        null_ls.builtins.diagnostics.flake8,
-        null_ls.builtins.diagnostics.mypy,
-
-        -- JavaScript / TypeScript / React
+        null_ls.builtins.diagnostics.mypy.with({
+            dynamic_command = helpers.cache.by_bufnr(function(params)
+                return project_executable(params, "mypy")
+            end),
+        }),
         null_ls.builtins.formatting.prettierd.with({
             filetypes = {
                 "javascript", "javascriptreact",
@@ -18,13 +38,7 @@ null_ls.setup({
                 "graphql", "html", "css", "scss", "less",
             },
         }),
-        null_ls.builtins.diagnostics.eslint, -- ⚡️ теперь так
-
-        -- Lua
         null_ls.builtins.formatting.stylua,
-
-        -- Rust
-        null_ls.builtins.formatting.rustfmt,
     },
 
     on_attach = function(client, bufnr)
@@ -37,7 +51,7 @@ null_ls.setup({
                     vim.lsp.buf.format({
                         bufnr = bufnr,
                         filter = function(c)
-                            return c.name == "null-ls"
+                            return c.name == "null-ls" or c.name == "none-ls"
                         end,
                     })
                 end,

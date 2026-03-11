@@ -1,10 +1,8 @@
---Basic
 require("config.lazy")
 require("core.mappings")
 require("core.colors")
 require("core.configs")
 
---Plugins
 require("plugins.neotree")
 require("plugins.treesitter")
 require("plugins.lsp")

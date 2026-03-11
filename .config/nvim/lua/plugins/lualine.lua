@@ -1,7 +1,3 @@
--- Bubbles config for lualine
--- Author: lokesh-krishna
--- MIT license, see LICENSE for more details.
--- stylua: ignore
 local colors = {
     blue = '#80a0ff',
     cyan = '#79dac8',
@@ -40,7 +36,6 @@ require('lualine').setup {
         lualine_a = {{'mode', separator = {left = ''}, right_padding = 2}},
         lualine_b = {
             'filename', 'branch'
-            -- require("lsp-progress").progress  
         },
         lualine_c = {'fileformat'},
         lualine_x = {},
