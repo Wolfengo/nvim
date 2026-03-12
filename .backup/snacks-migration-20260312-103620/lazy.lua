@@ -67,9 +67,8 @@ require("lazy").setup({
       dependencies = { "nvim-tree/nvim-web-devicons" },
     },
     {
-      "folke/snacks.nvim",
-      priority = 1000,
-      lazy = false,
+      "akinsho/toggleterm.nvim",
+      version = "*",
     },
     {
       "MeanderingProgrammer/render-markdown.nvim",
