@@ -1,0 +1,41 @@
+local M = {}
+
+function M.map_leader(map, lhs, rhs)
+    map('n', '<leader>' .. lhs, rhs)
+end
+
+function M.apply_general(map, terminal)
+    M.map_leader(map, 'у', ':Neotree focus<CR>')
+    M.map_leader(map, 'щ', ':Neotree git_status float<CR>')
+    M.map_leader(map, 'ц', ':w<CR>')
+    M.map_leader(map, 'ч', ':BufferLinePickClose<CR>')
+    M.map_leader(map, 'Ч', ':BufferLineCloseRight<CR>')
+    M.map_leader(map, 'ы', ':BufferLineSortByTabs<CR>')
+    M.map_leader(map, 'р', ':nohlsearch<CR>')
+    M.map_leader(map, 'ее', function() terminal.toggle(1, "bottom") end)
+    M.map_leader(map, 'еа', function() terminal.toggle(2, "float") end)
+    M.map_leader(map, 'ер', function() terminal.toggle(1, "bottom") end)
+    M.map_leader(map, 'ем', function() terminal.toggle(3, "right") end)
+    M.map_leader(map, 'с', '<C-w>p')
+    M.map_leader(map, '1', function() terminal.toggle(1, "bottom") end)
+    M.map_leader(map, '2', function() terminal.toggle(2, "bottom") end)
+    M.map_leader(map, '3', function() terminal.toggle(3, "bottom") end)
+    M.map_leader(map, '4', function() terminal.toggle(4, "bottom") end)
+    M.map_leader(map, 'аа', function() require('telescope.builtin').find_files() end)
+    M.map_leader(map, 'ац', function() require('telescope.builtin').live_grep() end)
+    M.map_leader(map, 'аи', function() require('telescope.builtin').buffers() end)
+    M.map_leader(map, 'ар', function() require('telescope.builtin').help_tags() end)
+    M.map_leader(map, 'пи', function() require('telescope.builtin').git_branches() end)
+    M.map_leader(map, 'пс', function() require('telescope.builtin').git_commits() end)
+    M.map_leader(map, 'пы', function() require('telescope.builtin').git_status() end)
+    M.map_leader(map, 'дЫ', vim.diagnostic.open_float)
+    M.map_leader(map, 'дв', vim.diagnostic.setloclist)
+    M.map_leader(map, 'ду', vim.diagnostic.open_float)
+    M.map_leader(map, 'дт', vim.diagnostic.goto_next)
+    M.map_leader(map, 'дз', vim.diagnostic.goto_prev)
+    map('n', 'цц', ':w<CR>')
+    map('n', 'йй', require("features.buffers").close_current)
+    map('i', 'оо', '<Esc>')
+end
+
+return M

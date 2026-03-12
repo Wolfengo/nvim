@@ -1,33 +1,14 @@
 local null_ls = require("null-ls")
 local helpers = require("null-ls.helpers")
+local python = require("features.python")
 local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
-
-local function find_upward(startpath, targets)
-    if not startpath or startpath == "" then
-        return nil
-    end
-
-    local dir = vim.fs.dirname(startpath)
-    return vim.fs.find(targets, {
-        path = dir,
-        upward = true,
-        stop = vim.loop.os_homedir(),
-    })[1]
-end
-
-local function project_executable(params, command)
-    return find_upward(params.bufname, {
-        ".venv/bin/" .. command,
-        "venv/bin/" .. command,
-    }) or command
-end
 
 null_ls.setup({
     sources = {
         null_ls.builtins.formatting.black,
         null_ls.builtins.diagnostics.mypy.with({
             dynamic_command = helpers.cache.by_bufnr(function(params)
-                return project_executable(params, "mypy")
+                return python.project_executable(params.bufname, "mypy")
             end),
         }),
         null_ls.builtins.formatting.prettierd.with({

@@ -1,60 +1,91 @@
 local colors = {
-    blue = '#80a0ff',
-    cyan = '#79dac8',
-    black = '#080808',
-    white = '#c6c6c6',
-    red = '#ff5189',
-    violet = '#d183e8',
-    grey = '#303030'
+  blue = "#80a0ff",
+  cyan = "#79dac8",
+  black = "#080808",
+  white = "#c6c6c6",
+  red = "#ff5189",
+  violet = "#d183e8",
+  grey = "#303030",
 }
 
 local bubbles_theme = {
-    normal = {
-        a = {fg = colors.black, bg = colors.violet},
-        b = {fg = colors.white, bg = colors.grey},
-        c = {fg = colors.black, bg = colors.black}
-    },
-
-    insert = {a = {fg = colors.black, bg = colors.blue}},
-    visual = {a = {fg = colors.black, bg = colors.cyan}},
-    replace = {a = {fg = colors.black, bg = colors.red}},
-
-    inactive = {
-        a = {fg = colors.white, bg = colors.black},
-        b = {fg = colors.white, bg = colors.black},
-        c = {fg = colors.black, bg = colors.black}
-    }
+  normal = {
+    a = { fg = colors.black, bg = colors.violet },
+    b = { fg = colors.white, bg = colors.grey },
+    c = { fg = colors.black, bg = colors.black },
+  },
+  insert = { a = { fg = colors.black, bg = colors.blue } },
+  visual = { a = { fg = colors.black, bg = colors.cyan } },
+  replace = { a = { fg = colors.black, bg = colors.red } },
+  inactive = {
+    a = { fg = colors.white, bg = colors.black },
+    b = { fg = colors.white, bg = colors.black },
+    c = { fg = colors.black, bg = colors.black },
+  },
 }
 
-require('lualine').setup {
-    options = {
-        theme = bubbles_theme,
-        component_separators = '|',
-        section_separators = {left = '', right = ''}
+local function current_input_layout()
+  if vim.env.SSH_CONNECTION and not vim.env.DISPLAY and not vim.env.WAYLAND_DISPLAY then
+    return ""
+  end
+
+  if vim.fn.executable("xkb-switch") == 1 then
+    local layout = vim.trim(vim.fn.system("xkb-switch"))
+    if layout ~= "" then
+      return string.upper(layout:sub(1, 2))
+    end
+  end
+
+  if vim.fn.executable("setxkbmap") == 1 and vim.env.DISPLAY then
+    local output = vim.fn.system("setxkbmap -query")
+    local layout = output:match("layout:%s*([%w,%-_]+)")
+    if layout and layout ~= "" then
+      return string.upper(vim.split(layout, ",")[1]:sub(1, 2))
+    end
+  end
+
+  return ""
+end
+
+local function current_input_layout_label()
+  local layout = current_input_layout()
+  if layout == "" then
+    return "lang --"
+  end
+  return "lang " .. layout
+end
+
+require("lualine").setup({
+  options = {
+    theme = bubbles_theme,
+    component_separators = "|",
+    section_separators = { left = "", right = "" },
+  },
+  sections = {
+    lualine_a = { { "mode", separator = { left = "" }, right_padding = 2 } },
+    lualine_b = { "filename", "branch" },
+    lualine_c = { "fileformat" },
+    lualine_x = {},
+    lualine_y = {
+      current_input_layout_label,
+      "filetype",
+      "progress",
     },
-    sections = {
-        lualine_a = {{'mode', separator = {left = ''}, right_padding = 2}},
-        lualine_b = {
-            'filename', 'branch'
-        },
-        lualine_c = {'fileformat'},
-        lualine_x = {},
-        lualine_y = {'filetype', 'progress'},
-        lualine_z = {
-            {'location', separator = {right = ''}, left_padding = 2}
-        }
+    lualine_z = {
+      { "location", separator = { right = "" }, left_padding = 2 },
     },
-    inactive_sections = {
-        lualine_a = {'filename'},
-        lualine_b = {},
-        lualine_c = {},
-        lualine_x = {},
-        lualine_y = {},
-        lualine_z = {'location'}
-    },
-    tabline = {},
-    extensions = {}
-}
+  },
+  inactive_sections = {
+    lualine_a = { "filename" },
+    lualine_b = {},
+    lualine_c = {},
+    lualine_x = {},
+    lualine_y = {},
+    lualine_z = { "location" },
+  },
+  tabline = {},
+  extensions = {},
+})
 
 vim.cmd([[
 augroup lualine_augroup

@@ -1,81 +1,53 @@
 vim.g.mapleader = " "
 
-local function jump_syntax_block(direction)
-    local ok, node = pcall(vim.treesitter.get_node)
-    if not ok or not node then
-        vim.cmd(direction == "next" and "normal! }" or "normal! {")
-        return
-    end
+local buffers = require("features.buffers")
+local navigation = require("features.navigation")
+local russian = require("features.russian")
+local terminal = require("features.terminal")
 
-    local sibling_getter = direction == "next" and "next_named_sibling" or "prev_named_sibling"
-
-    while node do
-        local sibling = node[sibling_getter] and node[sibling_getter](node)
-        if sibling then
-            local row = sibling:range()
-            vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
-            return
-        end
-        node = node:parent()
-    end
-
-    vim.cmd(direction == "next" and "normal! }" or "normal! {")
+local function map(mode, lhs, rhs, opts)
+    vim.keymap.set(mode, lhs, rhs, opts)
 end
 
-local function close_current_buffer()
-    local current = vim.api.nvim_get_current_buf()
-    local listed = vim.tbl_filter(function(buf)
-        return vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buflisted
-    end, vim.api.nvim_list_bufs())
+map('n', '<leader>e', ':Neotree focus<CR>')
+map('n', '<leader>o', ':Neotree git_status float<CR>')
 
-    if #listed <= 1 then
-        vim.cmd("enew")
-        vim.cmd("bdelete " .. current)
-        return
-    end
+map('n', '<Tab>', ':BufferLineCycleNext<CR>')
+map('n', '<s-Tab>', ':BufferLineCyclePrev<CR>')
 
-    local alternate = vim.fn.bufnr("#")
-    if alternate > 0 and vim.api.nvim_buf_is_loaded(alternate) and vim.bo[alternate].buflisted then
-        vim.api.nvim_set_current_buf(alternate)
-    else
-        vim.cmd("bnext")
-        if vim.api.nvim_get_current_buf() == current then
-            vim.cmd("bprevious")
-        end
-    end
+map('n', '<C-h>', '<C-w>h')
+map('n', '<C-j>', '<C-w>j')
+map('n', '<C-k>', '<C-w>k')
+map('n', '<C-l>', '<C-w>l')
+map('n', '<C-Left>', '<C-w>h')
+map('n', '<C-Down>', '<C-w>j')
+map('n', '<C-Up>', '<C-w>k')
+map('n', '<C-Right>', '<C-w>l')
 
-    vim.cmd("bdelete " .. current)
-end
+map('n', '<leader>w', ':w<CR>')
+map('n', '<leader>x', ':BufferLinePickClose<CR>')
+map('n', '<leader>X', ':BufferLineCloseRight<CR>')
+map('n', '<leader>s', ':BufferLineSortByTabs<CR>')
+map('n', 'ww', ':w<CR>')
+map('n', 'qq', buffers.close_current)
+map('n', '<M-j>', function() navigation.jump_syntax_block("next") end)
+map('n', '<M-k>', function() navigation.jump_syntax_block("prev") end)
+map('n', '<M-Down>', function() navigation.jump_syntax_block("next") end)
+map('n', '<M-Up>', function() navigation.jump_syntax_block("prev") end)
+map('n', '<M-Left>', function() navigation.jump_line_segment("left") end)
+map('n', '<M-Right>', function() navigation.jump_line_segment("right") end)
+map('i', 'jj', '<Esc>')
+map('n', '<leader>h', ':nohlsearch<CR>')
 
-vim.keymap.set('n', '<leader>e', ':Neotree focus<CR>')
-vim.keymap.set('n', '<leader>o', ':Neotree git_status float<CR>')
+map('n', '<leader>tt', function() terminal.toggle(1, "bottom") end)
+map('n', '<leader>tf', function() terminal.toggle(2, "float") end)
+map('n', '<leader>th', function() terminal.toggle(1, "bottom") end)
+map('n', '<leader>tv', function() terminal.toggle(3, "right") end)
+map('n', '<C-\\>', function() terminal.toggle(1, "bottom") end)
+map('n', '<leader>1', function() terminal.toggle(1, "bottom") end)
+map('n', '<leader>2', function() terminal.toggle(2, "bottom") end)
+map('n', '<leader>3', function() terminal.toggle(3, "bottom") end)
+map('n', '<leader>4', function() terminal.toggle(4, "bottom") end)
+map('n', '<leader>c', '<C-w>p')
 
-vim.keymap.set('n', '<Tab>', ':BufferLineCycleNext<CR>')
-vim.keymap.set('n', '<s-Tab>', ':BufferLineCyclePrev<CR>')
-
-vim.keymap.set('n', '<C-h>', '<C-w>h')
-vim.keymap.set('n', '<C-j>', '<C-w>j')
-vim.keymap.set('n', '<C-k>', '<C-w>k')
-vim.keymap.set('n', '<C-l>', '<C-w>l')
-
-vim.keymap.set('n', '<leader>w', ':w<CR>')
-vim.keymap.set('n', '<leader>x', ':BufferLinePickClose<CR>')
-vim.keymap.set('n', '<leader>X', ':BufferLineCloseRight<CR>')
-vim.keymap.set('n', '<leader>s', ':BufferLineSortByTabs<CR>')
-vim.keymap.set('n', 'ww', ':w<CR>')
-vim.keymap.set('n', 'qq', close_current_buffer)
-vim.keymap.set('n', '<M-j>', function() jump_syntax_block("next") end)
-vim.keymap.set('n', '<M-k>', function() jump_syntax_block("prev") end)
-vim.keymap.set('i', 'jj', '<Esc>')
-vim.keymap.set('n', '<leader>h', ':nohlsearch<CR>')
-
-vim.keymap.set('n', '<leader>tt', function() toggle_snacks_terminal(1, "bottom") end)
-vim.keymap.set('n', '<leader>tf', function() toggle_snacks_terminal(2, "float") end)
-vim.keymap.set('n', '<leader>th', function() toggle_snacks_terminal(1, "bottom") end)
-vim.keymap.set('n', '<leader>tv', function() toggle_snacks_terminal(3, "right") end)
-vim.keymap.set('n', '<C-\\>', function() toggle_snacks_terminal(1, "bottom") end)
-vim.keymap.set('n', '<leader>1', function() toggle_snacks_terminal(1, "bottom") end)
-vim.keymap.set('n', '<leader>2', function() toggle_snacks_terminal(2, "bottom") end)
-vim.keymap.set('n', '<leader>3', function() toggle_snacks_terminal(3, "bottom") end)
-vim.keymap.set('n', '<leader>4', function() toggle_snacks_terminal(4, "bottom") end)
-vim.keymap.set('n', '<leader>c', '<C-w>p')
+russian.apply_general(map, terminal)
