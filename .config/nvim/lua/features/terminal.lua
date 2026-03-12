@@ -1,4 +1,5 @@
 local M = {}
+local paths = require("features.paths")
 
 local function terminal_win(position)
     if position == "float" then
@@ -39,39 +40,6 @@ function M.toggle(count, position)
     })
 end
 
-function M.open_path()
-    local line = vim.api.nvim_get_current_line()
-    local patterns = {
-        "([%w%._%-%/\\]+):(%d+):(%d+)",
-        "([%w%._%-%/\\]+):(%d+)",
-    }
-
-    local path, row, col
-    for _, pattern in ipairs(patterns) do
-        path, row, col = line:match(pattern)
-        if path then
-            break
-        end
-    end
-
-    if not path then
-        return
-    end
-
-    local resolved = vim.fs.normalize(path)
-    if vim.fn.filereadable(resolved) == 0 then
-        resolved = vim.fs.normalize(vim.fn.getcwd() .. "/" .. path)
-    end
-
-    if vim.fn.filereadable(resolved) == 0 then
-        vim.notify("File not found: " .. path, vim.log.levels.WARN)
-        return
-    end
-
-    vim.cmd("edit " .. vim.fn.fnameescape(resolved))
-    vim.api.nvim_win_set_cursor(0, { tonumber(row), math.max((tonumber(col) or 1) - 1, 0) })
-end
-
 function M.setup_keymaps(event)
     local opts = { buffer = event.buf }
     vim.keymap.set('t', 'jk', [[<C-\><C-n>]], opts)
@@ -84,6 +52,10 @@ function M.setup_keymaps(event)
     vim.keymap.set('t', '<C-Down>', [[<Cmd>wincmd j<CR>]], opts)
     vim.keymap.set('t', '<C-Up>', [[<Cmd>wincmd k<CR>]], opts)
     vim.keymap.set('t', '<C-Right>', [[<Cmd>wincmd l<CR>]], opts)
+    vim.keymap.set('t', '<S-Up>', [[<C-\><C-n><Cmd>resize +3<CR>]], opts)
+    vim.keymap.set('t', '<S-Down>', [[<C-\><C-n><Cmd>resize -3<CR>]], opts)
+    vim.keymap.set('t', '<S-Left>', [[<C-\><C-n><Cmd>vertical resize -5<CR>]], opts)
+    vim.keymap.set('t', '<S-Right>', [[<C-\><C-n><Cmd>vertical resize +5<CR>]], opts)
     vim.keymap.set('t', '<C-w>', [[<C-\><C-n><C-w>]], opts)
     vim.keymap.set('t', '<C-\\>', function() M.toggle(1, "bottom") end, opts)
     vim.keymap.set('t', '<leader>tt', function() M.toggle(1, "bottom") end, opts)
@@ -100,7 +72,7 @@ function M.setup_keymaps(event)
     vim.keymap.set('t', '<leader>ер', function() M.toggle(1, "bottom") end, opts)
     vim.keymap.set('t', '<leader>ем', function() M.toggle(3, "right") end, opts)
     vim.keymap.set('t', '<leader>с', [[<C-\><C-n><C-w>p]], opts)
-    vim.keymap.set('n', 'gf', M.open_path, opts)
+    paths.setup_buffer(event)
 end
 
 return M
