@@ -1,4 +1,5 @@
 ^\.backup$
 ^\.git$
+^\.gitignore$
 ^\.nvimlog$
 ^\.config/nvim/\.nvimlog$

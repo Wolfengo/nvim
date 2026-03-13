@@ -356,13 +356,12 @@ brew install imagemagick
 
 - двойное `Esc`
 - `jk`
-- `ол` в русской раскладке
 - стандартный способ Neovim: `Ctrl-\`, затем `Ctrl-n`
 
 | Клавиши | Что делают |
 | --- | --- |
 | `Esc Esc` | выйти в normal mode терминала |
-| `jk / ол` | выйти в normal mode терминала |
+| `jk` | выйти в normal mode терминала |
 | `Ctrl-h` | окно слева |
 | `Ctrl-j` | окно снизу |
 | `Ctrl-k` | окно сверху |
