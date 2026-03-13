@@ -23,7 +23,14 @@
 ```bash
 cd ~/dotfiles
 stow nvim
-./nvim/.config/nvim/install.sh
+./nvim/.config/nvim/install-remote.sh
+```
+
+Если Neovim запускается на удалённой машине, а терминал и шрифты живут локально, локальные зависимости ставятся отдельно на локальной машине:
+
+```bash
+cd ~/dotfiles
+./nvim/.config/nvim/install-local.sh
 ```
 
 Установщик можно запускать повторно. Он пропускает уже установленные зависимости и дозагружает только недостающее.
@@ -31,11 +38,21 @@ stow nvim
 Доступные режимы:
 
 ```bash
-./nvim/.config/nvim/install.sh --base
-./nvim/.config/nvim/install.sh --python
-./nvim/.config/nvim/install.sh --web
-./nvim/.config/nvim/install.sh --nvim
-./nvim/.config/nvim/install.sh --all
+./nvim/.config/nvim/install-remote.sh --base
+./nvim/.config/nvim/install-remote.sh --python
+./nvim/.config/nvim/install-remote.sh --web
+./nvim/.config/nvim/install-remote.sh --images
+./nvim/.config/nvim/install-remote.sh --nvim
+./nvim/.config/nvim/install-remote.sh --all
+```
+
+Для локальной машины:
+
+```bash
+./nvim/.config/nvim/install-local.sh --font
+./nvim/.config/nvim/install-local.sh --clipboard
+./nvim/.config/nvim/install-local.sh --images
+./nvim/.config/nvim/install-local.sh --all
 ```
 
 Что делают режимы:
@@ -44,9 +61,19 @@ stow nvim
 | --- | --- |
 | `--base` | базовые системные зависимости |
 | `--python` | `mypy`, `black` |
-| `--web` | `pyright`, `typescript-language-server`, `typescript`, `vscode-langservers-extracted`, `@prisma/language-server`, `prettierd` |
+| `--web` | `pyright`, `tree-sitter-cli`, `typescript-language-server`, `typescript`, `vscode-langservers-extracted`, `@prisma/language-server`, `prettierd` |
+| `--images` | `imagemagick` для просмотра картинок в `kitty` |
 | `--nvim` | `Neovim 0.11.5` |
 | `--all` | всё сразу |
+
+Локальные режимы:
+
+| Команда | Что ставится |
+| --- | --- |
+| `--font` | `JetBrainsMono Nerd Font` для локального терминала |
+| `--clipboard` | локальный clipboard provider |
+| `--images` | `imagemagick` для локального preview картинок |
+| `--all` | все локальные зависимости |
 
 ### Ручная установка
 
@@ -73,19 +100,69 @@ ln -s ~/dotfiles/nvim/.config/nvim ~/.config/nvim
 | `wl-clipboard` | clipboard в Wayland |
 | `nodejs` + `npm` | LSP и форматтеры из npm |
 | `python3` | Python-инструменты и venv |
+| C compiler | сборка parser'ов для `nvim-treesitter` |
+| `tree-sitter-cli` | установка parser'ов для `nvim-treesitter` |
 | `Nerd Font` | иконки в интерфейсе |
+
+Если вместо иконок, git-символов или разделителей в статуслайне видны квадраты, вопросики или пустые символы, значит на локальной машине в терминале не выбран `Nerd Font`.
+
+Рекомендуемый вариант:
+
+- `JetBrainsMono Nerd Font`
+
+Важно:
+
+- шрифт нужен именно на локальной машине, где открыт терминал
+- по SSH ставить его на удалённый сервер бессмысленно
+
+Команды установки:
+
+```bash
+# Arch Linux
+sudo pacman -S ttf-jetbrains-mono-nerd
+
+# macOS
+brew install --cask font-jetbrains-mono-nerd-font
+
+# Debian / Ubuntu (ручная установка Nerd Font)
+mkdir -p ~/.local/share/fonts
+cd /tmp
+curl -fLo JetBrainsMono.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
+unzip -o JetBrainsMono.zip -d ~/.local/share/fonts/JetBrainsMonoNerd
+fc-cache -fv
+```
+
+Если у тебя `kitty`, одного факта установки шрифта недостаточно: его ещё нужно выбрать в настройках терминала.
+
+Самый простой способ:
+
+```bash
+kitten choose-fonts
+```
+
+Либо прописать вручную в `~/.config/kitty/kitty.conf`:
+
+```conf
+font_family JetBrainsMono Nerd Font
+bold_font auto
+italic_font auto
+bold_italic_font auto
+```
+
+`fish` на это не влияет. Важен именно локальный терминал и выбранный в нём шрифт.
 
 Примеры базовой установки:
 
 ```bash
 # Debian / Ubuntu
-sudo apt install stow git curl tar ripgrep xclip wl-clipboard nodejs npm python3
+sudo apt install stow git curl tar ripgrep xclip wl-clipboard nodejs npm python3 build-essential
 
 # Arch Linux
-sudo pacman -Sy --needed stow git curl tar ripgrep xclip wl-clipboard nodejs npm python
+sudo pacman -Sy --needed stow git curl tar ripgrep xclip wl-clipboard nodejs npm python gcc make
 
 # macOS
-brew install stow git curl ripgrep node npm python
+brew install stow git curl ripgrep node python
+xcode-select --install
 ```
 
 ## Языки и инструменты
@@ -97,6 +174,7 @@ brew install stow git curl ripgrep node npm python
 | Python `.py` | ошибки, переходы, hover | `pyright` | `npm install -g pyright` |
 | Python `.py` | type-check | `mypy` | `apt install mypy` / `pacman -S mypy` / `brew install mypy` |
 | Python `.py` | форматирование | `black` | `apt install black` / `pacman -S black` / `brew install black` |
+| Treesitter parsers | подсветка и навигация по синтаксису | `tree-sitter-cli` | `npm install -g tree-sitter-cli` |
 | JavaScript / TypeScript / JSX / TSX | ошибки, переходы, hover | `typescript-language-server`, `typescript` | `npm install -g typescript typescript-language-server` |
 | Prisma `.prisma` | ошибки | `@prisma/language-server` | `npm install -g @prisma/language-server` |
 | CSS / SCSS / LESS | ошибки | `vscode-langservers-extracted` | `npm install -g vscode-langservers-extracted` |
@@ -181,6 +259,7 @@ vim.opt.clipboard = "unnamedplus"
 | `Alt-Left` | перейти к предыдущему фрагменту строки |
 | `Alt-Right` | перейти к следующему фрагменту строки |
 | `jj / оо` | выйти из insert mode |
+| `Space jp` | сделать текущий JSON читаемым |
 
 Основные хоткеи продублированы для русской раскладки, чтобы не переключать язык постоянно.
 
@@ -238,8 +317,38 @@ vim.opt.clipboard = "unnamedplus"
 | `Space 1` | терминал 1 |
 | `Space 2` | терминал 2 |
 | `Space 3` | терминал 3 |
-| `Space 4` | терминал 4 |
-| `Space c` | перейти в предыдущее окно |
+| `Space 4` | терминал 4, плавающий |
+
+## JSON и картинки
+
+Для `json` автопереформатирования при открытии нет.
+
+Что есть:
+
+- `Space jp` - вручную сделать текущий `json` читаемым
+- после этого файл остаётся обычным редактируемым буфером
+
+Для картинок:
+
+- если открыт `png`, `jpg`, `jpeg`, `gif`, `webp` или `avif`, `nvim` попытается показать изображение прямо в буфере
+- это включается только в `kitty`
+- для работы нужен локальный `kitty` и установленный `imagemagick` на машине, где запущен `nvim`
+
+Установка `imagemagick`:
+
+```bash
+# через установщик
+./nvim/.config/nvim/install-remote.sh --images
+
+# Debian / Ubuntu
+sudo apt install imagemagick
+
+# Arch Linux
+sudo pacman -S imagemagick
+
+# macOS
+brew install imagemagick
+```
 
 ### Внутри терминала
 
@@ -269,8 +378,7 @@ vim.opt.clipboard = "unnamedplus"
 | `Space 1` | терминал 1 |
 | `Space 2` | терминал 2 |
 | `Space 3` | терминал 3 |
-| `Space 4` | терминал 4 |
-| `Space c` | перейти в предыдущее окно |
+| `Space 4` | терминал 4, плавающий |
 | `gf` | открыть путь `path:line[:col]` под курсором |
 | `Enter` | открыть путь `path:line[:col]` под курсором |
 

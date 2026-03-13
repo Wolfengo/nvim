@@ -2,16 +2,26 @@
 set -euo pipefail
 
 NVIM_VERSION="0.11.5"
+NPM_PACKAGES=(
+  pyright
+  tree-sitter-cli
+  typescript
+  typescript-language-server
+  @prisma/language-server
+  vscode-langservers-extracted
+  @fsouza/prettierd
+)
 
 usage() {
   cat <<'EOF'
 Usage:
-  ./install.sh [--base] [--python] [--web] [--nvim] [--all]
+  ./install-remote.sh [--base] [--python] [--web] [--images] [--nvim] [--all]
 
 Options:
   --base     Install system base dependencies
   --python   Install Python diagnostics / formatting tools
   --web      Install npm-based LSP / formatter tools
+  --images   Install optional image preview dependencies
   --nvim     Install Neovim 0.11.x from official release
   --all      Install everything above
 
@@ -26,6 +36,7 @@ PKG_MANAGER=""
 need_base=false
 need_python=false
 need_web=false
+need_images=false
 need_nvim=false
 
 if [[ $# -eq 0 ]]; then
@@ -46,6 +57,9 @@ while [[ $# -gt 0 ]]; do
     --web)
       need_web=true
       ;;
+    --images)
+      need_images=true
+      ;;
     --nvim)
       need_nvim=true
       ;;
@@ -53,6 +67,7 @@ while [[ $# -gt 0 ]]; do
       need_base=true
       need_python=true
       need_web=true
+      need_images=true
       need_nvim=true
       ;;
     -h|--help)
@@ -140,13 +155,24 @@ install_system_packages() {
 base_packages() {
   case "$PKG_MANAGER" in
     apt)
-      printf '%s\n' git curl tar ripgrep xclip wl-clipboard nodejs npm python3
+      printf '%s\n' git curl tar ripgrep xclip wl-clipboard nodejs npm python3 build-essential
       ;;
     pacman)
-      printf '%s\n' git curl tar ripgrep xclip wl-clipboard nodejs npm python
+      printf '%s\n' git curl tar ripgrep xclip wl-clipboard nodejs npm python gcc make
       ;;
     brew)
-      printf '%s\n' git curl ripgrep node npm python
+      printf '%s\n' git curl ripgrep node python
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+image_packages() {
+  case "$PKG_MANAGER" in
+    apt|pacman|brew)
+      printf '%s\n' imagemagick
       ;;
     *)
       return 1
@@ -176,6 +202,9 @@ install_npm_if_missing() {
         ;;
       typescript)
         has_cmd tsc || missing+=("$pkg")
+        ;;
+      tree-sitter-cli)
+        has_cmd tree-sitter || missing+=("$pkg")
         ;;
       typescript-language-server)
         has_cmd typescript-language-server || missing+=("$pkg")
@@ -272,6 +301,11 @@ if [[ "$need_web" == true ]]; then
     exit 1
   fi
   install_npm_if_missing "${NPM_PACKAGES[@]}"
+fi
+
+if [[ "$need_images" == true ]]; then
+  mapfile -t packages < <(image_packages)
+  install_system_packages "${packages[@]}"
 fi
 
 if [[ "$need_nvim" == true ]]; then

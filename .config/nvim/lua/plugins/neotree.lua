@@ -5,6 +5,21 @@ require("neo-tree").setup({
             hide_gitignored = false,
         },
     },
+    default_component_configs = {
+        git_status = {
+            symbols = {
+                added = "+",
+                deleted = "-",
+                modified = "~",
+                renamed = "r",
+                untracked = "?",
+                ignored = "!",
+                unstaged = "*",
+                staged = "+",
+                conflict = "x",
+            },
+        },
+    },
 })
 
 vim.api.nvim_create_autocmd("VimEnter", {

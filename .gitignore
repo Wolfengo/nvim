@@ -1,0 +1,5 @@
+.nvimlog
+.backup/
+.backup
+*.backup*
+

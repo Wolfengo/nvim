@@ -24,6 +24,8 @@ local bubbles_theme = {
   },
 }
 
+local layout_cache = "lang --"
+
 local function current_input_layout()
   if vim.env.SSH_CONNECTION and not vim.env.DISPLAY and not vim.env.WAYLAND_DISPLAY then
     return ""
@@ -47,13 +49,58 @@ local function current_input_layout()
   return ""
 end
 
-local function current_input_layout_label()
+local function refresh_input_layout()
   local layout = current_input_layout()
   if layout == "" then
-    return "lang --"
+    layout_cache = "lang --"
+    return
   end
-  return "lang " .. layout
+  layout_cache = "lang " .. layout
 end
+
+local function current_input_layout_label()
+  return layout_cache
+end
+
+local function project_file_path()
+  local file = vim.api.nvim_buf_get_name(0)
+  if file == "" then
+    return "[No Name]"
+  end
+
+  local cwd = vim.fn.getcwd()
+  local cwd_path = vim.fs.relpath(cwd, file)
+  if cwd_path then
+    return cwd_path
+  end
+
+  local root = vim.fs.root(file, {
+    ".git",
+    "pyproject.toml",
+    "package.json",
+    "Cargo.toml",
+    "go.mod",
+    "Makefile",
+  })
+
+  if root then
+    return vim.fs.relpath(root, file) or vim.fn.fnamemodify(file, ":.")
+  end
+
+  return vim.fn.fnamemodify(file, ":.")
+end
+
+refresh_input_layout()
+
+vim.api.nvim_create_autocmd({ "FocusGained", "InsertLeave", "CursorHold", "CursorHoldI" }, {
+  group = vim.api.nvim_create_augroup("UserInputLayoutRefresh", { clear = true }),
+  callback = function()
+    refresh_input_layout()
+    pcall(function()
+      require("lualine").refresh()
+    end)
+  end,
+})
 
 require("lualine").setup({
   options = {
@@ -63,7 +110,7 @@ require("lualine").setup({
   },
   sections = {
     lualine_a = { { "mode", separator = { left = "" }, right_padding = 2 } },
-    lualine_b = { "filename", "branch" },
+    lualine_b = { project_file_path, "branch" },
     lualine_c = { "fileformat" },
     lualine_x = {},
     lualine_y = {
@@ -76,7 +123,7 @@ require("lualine").setup({
     },
   },
   inactive_sections = {
-    lualine_a = { "filename" },
+    lualine_a = { project_file_path },
     lualine_b = {},
     lualine_c = {},
     lualine_x = {},

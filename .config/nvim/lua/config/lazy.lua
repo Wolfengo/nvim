@@ -79,6 +79,14 @@ require("lazy").setup({
       },
       ft = { "markdown" },
     },
+    {
+      "3rd/image.nvim",
+      cond = function()
+        local term = vim.env.TERM or ""
+        return term:find("kitty", 1, true) ~= nil and vim.fn.executable("magick") == 1
+      end,
+      build = false,
+    },
   },
   install = { colorscheme = { "habamax" } },
   checker = { enabled = true },

@@ -1,6 +1,14 @@
 local M = {}
 local paths = require("features.paths")
 
+M.ids = {
+    main = 1,
+    float = 4,
+    right = 13,
+    bottom_2 = 2,
+    bottom_3 = 3,
+}
+
 local function terminal_win(position)
     if position == "float" then
         return {
@@ -57,21 +65,19 @@ function M.setup_keymaps(event)
     vim.keymap.set('t', '<S-Left>', [[<C-\><C-n><Cmd>vertical resize -5<CR>]], opts)
     vim.keymap.set('t', '<S-Right>', [[<C-\><C-n><Cmd>vertical resize +5<CR>]], opts)
     vim.keymap.set('t', '<C-w>', [[<C-\><C-n><C-w>]], opts)
-    vim.keymap.set('t', '<C-\\>', function() M.toggle(1, "bottom") end, opts)
-    vim.keymap.set('t', '<leader>tt', function() M.toggle(1, "bottom") end, opts)
-    vim.keymap.set('t', '<leader>tf', function() M.toggle(2, "float") end, opts)
-    vim.keymap.set('t', '<leader>th', function() M.toggle(1, "bottom") end, opts)
-    vim.keymap.set('t', '<leader>tv', function() M.toggle(3, "right") end, opts)
-    vim.keymap.set('t', '<leader>1', function() M.toggle(1, "bottom") end, opts)
-    vim.keymap.set('t', '<leader>2', function() M.toggle(2, "bottom") end, opts)
-    vim.keymap.set('t', '<leader>3', function() M.toggle(3, "bottom") end, opts)
-    vim.keymap.set('t', '<leader>4', function() M.toggle(4, "bottom") end, opts)
-    vim.keymap.set('t', '<leader>c', [[<C-\><C-n><C-w>p]], opts)
-    vim.keymap.set('t', '<leader>ее', function() M.toggle(1, "bottom") end, opts)
-    vim.keymap.set('t', '<leader>еа', function() M.toggle(2, "float") end, opts)
-    vim.keymap.set('t', '<leader>ер', function() M.toggle(1, "bottom") end, opts)
-    vim.keymap.set('t', '<leader>ем', function() M.toggle(3, "right") end, opts)
-    vim.keymap.set('t', '<leader>с', [[<C-\><C-n><C-w>p]], opts)
+    vim.keymap.set('t', '<C-\\>', function() M.toggle(M.ids.main, "bottom") end, opts)
+    vim.keymap.set('t', '<leader>tt', function() M.toggle(M.ids.main, "bottom") end, opts)
+    vim.keymap.set('t', '<leader>tf', function() M.toggle(M.ids.float, "float") end, opts)
+    vim.keymap.set('t', '<leader>th', function() M.toggle(M.ids.main, "bottom") end, opts)
+    vim.keymap.set('t', '<leader>tv', function() M.toggle(M.ids.right, "right") end, opts)
+    vim.keymap.set('t', '<leader>1', function() M.toggle(M.ids.main, "bottom") end, opts)
+    vim.keymap.set('t', '<leader>2', function() M.toggle(M.ids.bottom_2, "bottom") end, opts)
+    vim.keymap.set('t', '<leader>3', function() M.toggle(M.ids.bottom_3, "bottom") end, opts)
+    vim.keymap.set('t', '<leader>4', function() M.toggle(M.ids.float, "float") end, opts)
+    vim.keymap.set('t', '<leader>ее', function() M.toggle(M.ids.main, "bottom") end, opts)
+    vim.keymap.set('t', '<leader>еа', function() M.toggle(M.ids.float, "float") end, opts)
+    vim.keymap.set('t', '<leader>ер', function() M.toggle(M.ids.main, "bottom") end, opts)
+    vim.keymap.set('t', '<leader>ем', function() M.toggle(M.ids.right, "right") end, opts)
     paths.setup_buffer(event)
 end
 
