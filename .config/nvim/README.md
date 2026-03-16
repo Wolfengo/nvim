@@ -309,15 +309,11 @@ vim.opt.clipboard = "unnamedplus"
 
 | Клавиши | Что делают |
 | --- | --- |
-| `Space tt` | показать / скрыть основной терминал |
-| `Space th` | нижний терминал |
-| `Space tf` | плавающий терминал |
-| `Space tv` | терминал справа |
 | `Ctrl-\` | показать / скрыть основной терминал |
-| `Space 1` | терминал 1 |
-| `Space 2` | терминал 2 |
-| `Space 3` | терминал 3 |
-| `Space 4` | терминал 4, плавающий |
+| `Space t 1` | терминал 1 |
+| `Space t 2` | терминал 2 |
+| `Space t 3` | терминал 3 |
+| `Space t 4` | терминал 4, плавающий |
 
 ## JSON и картинки
 
@@ -370,14 +366,10 @@ brew install imagemagick
 | `Shift-стрелки` | изменить размер текущего окна |
 | `Ctrl-w` | перейти к оконным командам Neovim |
 | `Ctrl-\` | показать / скрыть основной терминал |
-| `Space tt` | показать / скрыть основной терминал |
-| `Space th` | нижний терминал |
-| `Space tf` | плавающий терминал |
-| `Space tv` | терминал справа |
-| `Space 1` | терминал 1 |
-| `Space 2` | терминал 2 |
-| `Space 3` | терминал 3 |
-| `Space 4` | терминал 4, плавающий |
+| `Space t 1` | терминал 1 |
+| `Space t 2` | терминал 2 |
+| `Space t 3` | терминал 3 |
+| `Space t 4` | терминал 4, плавающий |
 | `gf` | открыть путь `path:line[:col]` под курсором |
 | `Enter` | открыть путь `path:line[:col]` под курсором |
 
@@ -400,10 +392,22 @@ brew install imagemagick
 
 ```bash
 command -v pyright-langserver
+command -v vscode-css-language-server
+command -v prisma-language-server
 command -v mypy
 command -v black
 command -v typescript-language-server
 command -v prettierd
+command -v tree-sitter
 command -v stylua
 command -v rg
 ```
+
+Если после `:Lazy update` начали сыпаться ошибки про отсутствующие LSP или Treesitter:
+
+```bash
+cd ~/dotfiles
+./nvim/.config/nvim/install-remote.sh --web
+```
+
+Потом полностью перезапусти `nvim`.
