@@ -36,6 +36,14 @@ local function ensure_modern_parsers()
     return
   end
 
+  if vim.fn.executable("tree-sitter") ~= 1 then
+    vim.notify(
+      "tree-sitter CLI is missing; run ~/.dotfiles/nvim/install-local.sh --dev-tools --nvim-bootstrap",
+      vim.log.levels.WARN
+    )
+    return
+  end
+
   local installed = {}
   for _, lang in ipairs(treesitter.get_installed()) do
     installed[lang] = true

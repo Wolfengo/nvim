@@ -10,8 +10,8 @@
 
 Ожидаемая структура:
 
-- `~/dotfiles` - каталог с dotfiles
-- `~/dotfiles/nvim` - пакет `nvim`
+- `~/.dotfiles` - каталог с dotfiles
+- `~/.dotfiles/nvim` - пакет `nvim`
 - `~/.config/nvim` - итоговый путь конфига после `stow`
 
 Если `~/.config` уже существует, `stow` добавит только `~/.config/nvim`.
@@ -21,19 +21,21 @@
 Рекомендуемый способ:
 
 ```bash
-cd ~/dotfiles
+cd ~/.dotfiles
 stow nvim
-./nvim/.config/nvim/install-remote.sh
+./nvim/.config/nvim/install-remote.sh --all
 ```
 
 Если Neovim запускается на удалённой машине, а терминал и шрифты живут локально, локальные зависимости ставятся отдельно на локальной машине:
 
 ```bash
-cd ~/dotfiles
-./nvim/.config/nvim/install-local.sh
+cd ~/.dotfiles/nvim
+./install-local.sh
 ```
 
-Установщик можно запускать повторно. Он пропускает уже установленные зависимости и дозагружает только недостающее.
+Если Neovim запускается на этой же машине, `./install-local.sh` без аргументов делает полный локальный bootstrap: ставит базовые пакеты, локальные зависимости терминала, LSP/formatter-инструменты, синхронизирует плагины и заранее устанавливает Treesitter-парсеры.
+
+Установщики можно запускать повторно. Они пропускают уже установленные зависимости и дозагружают только недостающее.
 
 Доступные режимы:
 
@@ -49,9 +51,12 @@ cd ~/dotfiles
 Для локальной машины:
 
 ```bash
+./nvim/.config/nvim/install-local.sh --base
 ./nvim/.config/nvim/install-local.sh --font
 ./nvim/.config/nvim/install-local.sh --clipboard
 ./nvim/.config/nvim/install-local.sh --images
+./nvim/.config/nvim/install-local.sh --dev-tools
+./nvim/.config/nvim/install-local.sh --nvim-bootstrap
 ./nvim/.config/nvim/install-local.sh --all
 ```
 
@@ -70,9 +75,12 @@ cd ~/dotfiles
 
 | Команда | Что ставится |
 | --- | --- |
+| `--base` | `stow`, `git`, `curl`, `ripgrep`, `nodejs`, `npm`, `python`, компилятор и базовые утилиты |
 | `--font` | `JetBrainsMono Nerd Font` для локального терминала |
 | `--clipboard` | локальный clipboard provider |
 | `--images` | `imagemagick` для локального preview картинок |
+| `--dev-tools` | локальные LSP, форматтеры и `tree-sitter-cli`, нужные этому конфигу |
+| `--nvim-bootstrap` | подключение `~/.config/nvim`, `Lazy sync` и установка Treesitter-парсеров |
 | `--all` | все локальные зависимости |
 
 ### Ручная установка
@@ -81,7 +89,7 @@ cd ~/dotfiles
 
 ```bash
 mkdir -p ~/.config
-ln -s ~/dotfiles/nvim/.config/nvim ~/.config/nvim
+ln -s ~/.dotfiles/nvim/.config/nvim ~/.config/nvim
 ```
 
 Ниже перечислены зависимости, которые нужно поставить вручную.
