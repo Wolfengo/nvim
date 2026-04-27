@@ -2,6 +2,19 @@
 set -euo pipefail
 
 NVIM_VERSION="0.11.5"
+NVIM_LANGUAGES=(
+  c
+  lua
+  vim
+  vimdoc
+  query
+  markdown
+  markdown_inline
+  python
+  tsx
+  javascript
+  rust
+)
 NPM_PACKAGES=(
   pyright
   tree-sitter-cli
@@ -12,21 +25,34 @@ NPM_PACKAGES=(
   @fsouza/prettierd
 )
 
+package_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+package_name="$(basename "$package_dir")"
+default_stow_root="$(dirname "$package_dir")"
+recommended_package_dir="${HOME}/.dotfiles/nvim"
+npm_prefix="${HOME}/.local/share/npm"
+npm_bin="${npm_prefix}/bin"
+stow_root=""
+
 usage() {
   cat <<'EOF'
 Usage:
-  ./install-remote.sh [--base] [--python] [--web] [--images] [--nvim] [--all]
+  ./install-remote.sh [--stow-root PATH] [--base] [--python] [--web] [--images] [--nvim] [--nvim-bootstrap] [--all]
 
 Options:
+  --stow-root PATH
+             Dotfiles root that contains the nvim package
   --base     Install system base dependencies
   --python   Install Python diagnostics / formatting tools
   --web      Install npm-based LSP / formatter tools
   --images   Install optional image preview dependencies
   --nvim     Install Neovim 0.11.x from official release
+  --nvim-bootstrap
+             Link config with stow, sync plugins, and install Treesitter parsers
   --all      Install everything above
 
 The script is safe to rerun:
 it checks what is already installed and only installs missing parts.
+When run without options, it prepares a remote/SSH Neovim setup.
 EOF
 }
 
@@ -38,16 +64,26 @@ need_python=false
 need_web=false
 need_images=false
 need_nvim=false
+need_nvim_bootstrap=false
 
 if [[ $# -eq 0 ]]; then
   need_base=true
   need_python=true
   need_web=true
   need_nvim=true
+  need_nvim_bootstrap=true
 fi
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --stow-root)
+      if [[ $# -lt 2 ]]; then
+        echo "--stow-root requires a path" >&2
+        exit 1
+      fi
+      stow_root="$2"
+      shift
+      ;;
     --base)
       need_base=true
       ;;
@@ -63,12 +99,16 @@ while [[ $# -gt 0 ]]; do
     --nvim)
       need_nvim=true
       ;;
+    --nvim-bootstrap)
+      need_nvim_bootstrap=true
+      ;;
     --all)
       need_base=true
       need_python=true
       need_web=true
       need_images=true
       need_nvim=true
+      need_nvim_bootstrap=true
       ;;
     -h|--help)
       usage
@@ -155,13 +195,13 @@ install_system_packages() {
 base_packages() {
   case "$PKG_MANAGER" in
     apt)
-      printf '%s\n' git curl tar ripgrep xclip wl-clipboard nodejs npm python3 build-essential
+      printf '%s\n' stow git curl tar ripgrep nodejs npm python3 build-essential
       ;;
     pacman)
-      printf '%s\n' git curl tar ripgrep xclip wl-clipboard nodejs npm python gcc make
+      printf '%s\n' stow git curl tar ripgrep nodejs npm python gcc make
       ;;
     brew)
-      printf '%s\n' git curl ripgrep node python
+      printf '%s\n' stow git curl ripgrep node python
       ;;
     *)
       return 1
@@ -182,8 +222,11 @@ image_packages() {
 
 python_packages() {
   case "$PKG_MANAGER" in
-    apt|pacman|brew)
+    apt|brew)
       printf '%s\n' mypy black
+      ;;
+    pacman)
+      printf '%s\n' mypy python-black stylua tree-sitter-cli
       ;;
     *)
       return 1
@@ -194,6 +237,10 @@ python_packages() {
 install_npm_if_missing() {
   local packages=("$@")
   local missing=()
+
+  if [[ -d "$npm_bin" ]]; then
+    export PATH="${npm_bin}:${PATH}"
+  fi
 
   for pkg in "${packages[@]}"; do
     case "$pkg" in
@@ -222,11 +269,87 @@ install_npm_if_missing() {
   done
 
   if [[ ${#missing[@]} -gt 0 ]]; then
+    if ! has_cmd npm; then
+      echo "npm is required for web tool installation" >&2
+      exit 1
+    fi
+    mkdir -p "$npm_prefix"
+    npm config set prefix "$npm_prefix" >/dev/null
+    export PATH="${npm_bin}:${PATH}"
     echo "Installing npm packages: ${missing[*]}"
     npm install -g "${missing[@]}"
   else
     echo "Npm packages already installed"
   fi
+}
+
+ensure_config_link() {
+  if ! has_cmd stow; then
+    echo "stow is required to link this package. Run $0 --base first." >&2
+    exit 1
+  fi
+
+  local root="${stow_root:-$default_stow_root}"
+  root="$(realpath -m "$root")"
+
+  if [[ "$package_name" != "nvim" || "$(realpath -m "$root/$package_name")" != "$(realpath -m "$package_dir")" ]]; then
+    echo "This package is currently at: $package_dir" >&2
+    echo "Recommended location: $recommended_package_dir" >&2
+    echo "Move it there or rerun with an explicit --stow-root PATH that contains this nvim package." >&2
+    exit 1
+  fi
+
+  if [[ "$(realpath -m "$package_dir")" != "$(realpath -m "$recommended_package_dir")" ]]; then
+    echo "This package is not in the recommended location."
+    echo "Current location: $package_dir"
+    echo "Recommended location: $recommended_package_dir"
+    if [[ -z "$stow_root" ]]; then
+      if [[ -t 0 && -t 1 ]]; then
+        read -r -p "Use current parent as stow root anyway? [y/N] " answer
+        case "$answer" in
+          y|Y|yes|YES)
+            ;;
+          *)
+            echo "Aborted. Move the package or rerun with --stow-root PATH." >&2
+            exit 1
+            ;;
+        esac
+      else
+        echo "Non-interactive run requires --stow-root PATH for non-standard locations." >&2
+        exit 1
+      fi
+    fi
+  fi
+
+  mkdir -p "${HOME}/.config"
+  echo "Linking Neovim config with stow: stow --dir $root --target ${HOME} $package_name"
+  stow --dir "$root" --target "$HOME" "$package_name"
+}
+
+bootstrap_nvim() {
+  if ! has_cmd nvim; then
+    echo "nvim is not installed or is not in PATH. Run $0 --nvim first." >&2
+    exit 1
+  fi
+
+  ensure_config_link
+
+  echo "Syncing Neovim plugins"
+  nvim --headless "+Lazy! sync" +qa
+
+  if ! has_cmd tree-sitter; then
+    echo "tree-sitter CLI is still missing; skipping Treesitter parser installation." >&2
+    echo "Install tree-sitter-cli and rerun: $0 --nvim-bootstrap" >&2
+    return
+  fi
+
+  echo "Installing Treesitter parsers: ${NVIM_LANGUAGES[*]}"
+  local lua_languages=""
+  local lang
+  for lang in "${NVIM_LANGUAGES[@]}"; do
+    lua_languages="${lua_languages}'${lang}',"
+  done
+  nvim --headless "+lua require('nvim-treesitter').install({ ${lua_languages} }, { force = true, summary = true }):wait(300000)" +qa
 }
 
 version_ge() {
@@ -296,10 +419,6 @@ if [[ "$need_python" == true ]]; then
 fi
 
 if [[ "$need_web" == true ]]; then
-  if ! has_cmd npm; then
-    echo "npm is required for web tool installation" >&2
-    exit 1
-  fi
   install_npm_if_missing "${NPM_PACKAGES[@]}"
 fi
 
@@ -310,6 +429,10 @@ fi
 
 if [[ "$need_nvim" == true ]]; then
   install_nvim_release
+fi
+
+if [[ "$need_nvim_bootstrap" == true ]]; then
+  bootstrap_nvim
 fi
 
 echo "Done."

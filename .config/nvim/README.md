@@ -21,43 +21,49 @@
 Рекомендуемый способ:
 
 ```bash
-cd ~/.dotfiles
-stow nvim
-./nvim/.config/nvim/install-remote.sh --all
-```
-
-Если Neovim запускается на удалённой машине, а терминал и шрифты живут локально, локальные зависимости ставятся отдельно на локальной машине:
-
-```bash
 cd ~/.dotfiles/nvim
 ./install-local.sh
 ```
 
+Установщик сам подключает пакет через `stow`. Если пакет лежит не в `~/.dotfiles/nvim`, установщик остановится с подсказкой. Для нестандартного расположения можно явно указать dotfiles root:
+
+```bash
+./install-local.sh --stow-root /path/to/dotfiles
+```
+
 Если Neovim запускается на этой же машине, `./install-local.sh` без аргументов делает полный локальный bootstrap: ставит базовые пакеты, локальные зависимости терминала, LSP/formatter-инструменты, синхронизирует плагины и заранее устанавливает Treesitter-парсеры.
+
+Для SSH/remote-сессии используется отдельный root entrypoint. Он готовит Neovim на удалённой машине без локальных terminal-only настроек вроде шрифтов:
+
+```bash
+cd ~/.dotfiles/nvim
+./install-remote.sh
+```
 
 Установщики можно запускать повторно. Они пропускают уже установленные зависимости и дозагружают только недостающее.
 
 Доступные режимы:
 
 ```bash
-./nvim/.config/nvim/install-remote.sh --base
-./nvim/.config/nvim/install-remote.sh --python
-./nvim/.config/nvim/install-remote.sh --web
-./nvim/.config/nvim/install-remote.sh --images
-./nvim/.config/nvim/install-remote.sh --nvim
-./nvim/.config/nvim/install-remote.sh --all
+./install-remote.sh --base
+./install-remote.sh --python
+./install-remote.sh --web
+./install-remote.sh --images
+./install-remote.sh --nvim
+./install-remote.sh --nvim-bootstrap
+./install-remote.sh --all
 ```
 
 Для локальной машины:
 
 ```bash
-./nvim/.config/nvim/install-local.sh --base
-./nvim/.config/nvim/install-local.sh --font
-./nvim/.config/nvim/install-local.sh --clipboard
-./nvim/.config/nvim/install-local.sh --images
-./nvim/.config/nvim/install-local.sh --dev-tools
-./nvim/.config/nvim/install-local.sh --nvim-bootstrap
-./nvim/.config/nvim/install-local.sh --all
+./install-local.sh --base
+./install-local.sh --font
+./install-local.sh --clipboard
+./install-local.sh --images
+./install-local.sh --dev-tools
+./install-local.sh --nvim-bootstrap
+./install-local.sh --all
 ```
 
 Что делают режимы:
@@ -69,6 +75,7 @@ cd ~/.dotfiles/nvim
 | `--web` | `pyright`, `tree-sitter-cli`, `typescript-language-server`, `typescript`, `vscode-langservers-extracted`, `@prisma/language-server`, `prettierd` |
 | `--images` | `imagemagick` для просмотра картинок в `kitty` |
 | `--nvim` | `Neovim 0.11.5` |
+| `--nvim-bootstrap` | подключение `~/.config/nvim`, `Lazy sync` и установка Treesitter-парсеров |
 | `--all` | всё сразу |
 
 Локальные режимы:

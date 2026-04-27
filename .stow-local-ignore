@@ -3,3 +3,6 @@
 ^\.gitignore$
 ^\.nvimlog$
 ^\.config/nvim/\.nvimlog$
+.*\.backup\..*$
+^install-local\.sh$
+^install-remote\.sh$
